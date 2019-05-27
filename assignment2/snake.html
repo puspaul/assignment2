@@ -1,0 +1,312 @@
+<!doctype html>
+<html>
+<head>
+<title>SNAKE GAME</title>
+</head>
+
+ 
+    <link href="https://fonts.googleapis.com/css?family=Antic+Slab" rel="stylesheet">
+
+  </head>
+
+  <body>
+	
+    <div id="score">SCORE=0</div>
+    <canvas id="gameCanvas" width="600" height="600"></canvas>
+    <style>
+      #gameCanvas {
+        position: absolute;
+        top: 60%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #score {
+        text-align: center;
+		position:absolute;
+		left:35%;
+        font-size: 100px;
+        font-family: 'Antic Slab', serif;
+		background-color:coral;
+		border:2px solid red;
+		width:440px;
+	  }
+	  body {
+  padding: 20px;
+}
+
+
+button
+{
+  margin-top: 20px;
+  line-height: 60px;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 0 40px;
+  background: salmon;
+  border: none;
+}
+button:hover {
+  background: lightsalmon;
+}
+	</style>
+	<audio src="Hiss.wav" id="sound"></audio>
+    <audio src="gameend.mp3" id="sound1"></audio>
+    <audio src="game.mp3" id="sound2"></audio>
+  </body>
+  
+  <script>
+    
+    const CANVAS_BORDER_COLOUR = 'black';
+    const CANVAS_BACKGROUND_COLOUR = 'coral';
+    const SNAKE_COLOUR = 'blue';
+    const SNAKE_BORDER_COLOUR = 'black';
+    const FOOD_COLOUR = 'red';
+    const FOOD_BORDER_COLOUR = 'darkred';
+	
+	
+	var sound=document.getElementById('sound');
+	var sound1=document.getElementById('sound1');
+	var sound2=document.getElementById('sound2');
+	
+	
+		
+	let snake = [
+      {x: 150, y: 150},
+      {x: 140, y: 150},
+      {x: 130, y: 150},
+      {x: 120, y: 150},
+      {x: 110, y: 150}
+    ]
+	let GAME_SPEED=100;
+    let score = 0;
+    let changingDirection = false;
+    let foodX;
+    let foodY;
+    let dx = 10;
+    let dy = 0;
+ 
+var button = document.createElement("button");
+button.innerHTML = "EASY";
+
+
+var body = document.getElementsByTagName("body")[0];
+body.appendChild(button);
+
+
+button.addEventListener ("click", function() {
+  GAME_SPEED=100;
+});
+
+
+
+
+
+
+
+
+
+
+
+var button = document.createElement("button");
+button.innerHTML = "MEDIUM";
+
+
+var body = document.getElementsByTagName("body")[0];
+body.appendChild(button);
+
+
+button.addEventListener ("click", function() {
+  GAME_SPEED=50;
+});
+
+
+
+
+
+
+var button = document.createElement("button");
+button.innerHTML = "HARD";
+
+
+var body = document.getElementsByTagName("body")[0];
+body.appendChild(button);
+
+
+button.addEventListener ("click", function() {
+  GAME_SPEED=25;
+});
+
+
+
+
+var button = document.createElement("button");
+button.innerHTML = "DEATH";
+
+
+var body = document.getElementsByTagName("body")[0];
+body.appendChild(button);
+
+
+button.addEventListener ("click", function() {
+  GAME_SPEED=10;
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+	
+	const gameCanvas = document.getElementById("gameCanvas");
+    const ctx = gameCanvas.getContext("2d");
+    main();
+    createFood();
+    document.addEventListener("keydown", changeDirection);
+    function main() {sound2.play();
+      if (didGameEnd())
+	{
+	sound1.play();
+	sound2.pause();
+	return;
+	}
+     
+	 setTimeout(function onTick() {
+	 
+      
+	  changingDirection = false;
+       clearCanvas();
+       drawFood();
+       advanceSnake();
+       drawSnake();
+       main();
+      }, GAME_SPEED)
+    }
+   
+    function clearCanvas() {
+     ctx.fillStyle = CANVAS_BACKGROUND_COLOUR;
+     ctx.strokestyle = CANVAS_BORDER_COLOUR;
+     ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+     ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
+    }
+    
+    function drawFood() {
+      ctx.fillStyle = FOOD_COLOUR;
+      ctx.strokestyle = FOOD_BORDER_COLOUR;
+      ctx.fillRect(foodX, foodY, 10, 10);
+      ctx.strokeRect(foodX, foodY, 10, 10);
+    }			
+     function advanceSnake() {
+      const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+      snake.unshift(head);
+      const didEatFood = snake[0].x === foodX && snake[0].y === foodY;
+      if (didEatFood) {
+        score += 10;
+		sound.pause();
+		sound.currentTime=0;
+		sound.play();
+		
+ document.getElementById('score').innerHTML = score;
+        
+		createFood();
+      } else {
+       
+        snake.pop();
+      }
+    }
+    
+    function didGameEnd() {
+      for (let i = 4; i < snake.length; i++) {
+        if (snake[i].x == snake[0].x && snake[i].y == snake[0].y) return true
+      }
+      const hitLeftWall = snake[0].x < 0;
+      const hitRightWall = snake[0].x > gameCanvas.width - 10;
+      const hitToptWall = snake[0].y < 0;
+      const hitBottomWall = snake[0].y > gameCanvas.height - 10;
+      return hitLeftWall || hitRightWall || hitToptWall || hitBottomWall
+    }
+    
+    function randomTen(min, max) {
+      return Math.round((Math.random() * (max-min) + min) / 10) * 10;
+    }
+    
+    function createFood() {
+     
+      foodX = randomTen(0, gameCanvas.width - 10);
+     
+      foodY = randomTen(0, gameCanvas.height - 10);
+     
+      snake.forEach(function isFoodOnSnake(part) {
+        const foodIsoNsnake = part.x == foodX && part.y == foodY;
+        if (foodIsoNsnake) createFood();
+      });
+    }
+
+    function drawSnake() {
+     
+      snake.forEach(drawSnakePart)
+    }
+  
+    function drawSnakePart(snakePart) {
+     
+      ctx.fillStyle = SNAKE_COLOUR;
+    
+      ctx.strokestyle = SNAKE_BORDER_COLOUR;
+    
+      
+      ctx.fillRect(snakePart.x, snakePart.y, 10, 10);
+    
+      ctx.strokeRect(snakePart.x, snakePart.y, 10, 10);
+    }
+
+   
+    function changeDirection(event) {
+      const LEFT_KEY = 37;
+      const RIGHT_KEY = 39;
+      const UP_KEY = 38;
+      const DOWN_KEY = 40;
+	  const SPACE=32;
+
+      if (changingDirection) return;
+      changingDirection = true;
+
+      const keyPressed = event.keyCode;
+	  const goingUp = dy === -10;
+      const goingDown = dy === 10;
+      const goingRight = dx === 10;
+      const goingLeft = dx === -10;
+	  
+          
+	  if (keyPressed === SPACE){
+
+      }
+      
+	  if (keyPressed === LEFT_KEY && !goingRight) {
+        dx = -10;
+        dy = 0;
+      }
+      
+      if (keyPressed === UP_KEY && !goingDown) {
+        dx = 0;
+        dy = -10;
+      }
+      
+      if (keyPressed === RIGHT_KEY && !goingLeft) {
+        dx = 10;
+        dy = 0;
+      }
+      
+      if (keyPressed === DOWN_KEY && !goingUp) {
+        dx = 0;
+        dy = 10;
+      }
+    }
+  </script>
+</html>
